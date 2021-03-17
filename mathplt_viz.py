@@ -1,31 +1,24 @@
 import matplotlib.pyplot as plt
 from math import sin, cos, radians
+from src.thread_draw_algo.draw_threads import count_xy
 
 N = 600 # Вершин
 R = 500 # Радиус окружности визуализации
 
-vertices = []
-edges = open("results/Поль Сезанн. Натюрморт с яблоками.txt").read().strip().split("\n")
 
-φ = 90
-for i in range(N):
-    x = cos(radians(φ)) * R
-    y = sin(radians(φ)) * R
-    vertices.append((x, y))
-    φ -= 360 / N
+def visualize(name):
+    vertices = []
+    edges = open(f"results/{name}.txt").read().strip().split("\n")
 
-x1, y1, x2, y2 = list(), list(), list(), list()
+    plt.figure(figsize=(10, 10))
+    plt.xlim(0, 1000), plt.ylim(-1000, 0)
+    for e in edges:
+        v1, v2 = e.split()
+        x1, y1 = count_xy(N, R, int(v1))
+        x2, y2 = count_xy(N, R, int(v2))
+        plt.plot([y1, y2], [-x1, -x2], color="black", linewidth=0.2)
+    plt.show()
 
-for e in edges:
-    v1, v2 = e.split()
-    ex_1, ey_1 = vertices[int(v1)-1]
-    ex_2, ey_2 = vertices[int(v2)-1]
-    x1.append(ex_1)
-    x2.append(ex_2)
-    y1.append(ey_1)
-    y2.append(ey_2)
-plt.figure(figsize=(10, 10))
-plt.xlim(-500, 500), plt.ylim(-500, 500)
-plt.plot(x1, y1, x2, y2, color="black", linewidth=0.2)
-plt.show()
 
+if __name__ == '__main__':
+    visualize("Поль Сезанн. Натюрморт с яблоками")

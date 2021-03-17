@@ -5,6 +5,9 @@ import random
 
 
 def count_xy(points, radius, index):
+    """
+    Count coords for circle points
+    """
     rad = radians(-90 + index * 360 / points)
     x = round(radius + radius * sin(rad))
     y = round(radius + radius * cos(rad))
@@ -12,11 +15,37 @@ def count_xy(points, radius, index):
 
 
 def change_pic(pixels, threads):
+    """
+
+    :param pixels:
+        Current image
+    :param threads:
+        List of threads to draw
+    """
     for thread in threads:
         thread.purge_weight(pixels)
 
 
 def draw(pixels, weight_func=linear_mean_squares, top=1, points=600, radius=500, max_iter=78):
+    """
+
+    :param pixels:
+        Image 2-D array
+    :param weight_func:
+        Function for find loss between 2 vectors
+        Takes from src.thread_draw_algo.weight_funcs
+    :param top:
+        Number of thread with the smallest weight, which takes
+        from one random point
+    :param points:
+        Number of points on the draw circle
+    :param radius:
+        Circle radius
+    :param max_iter:
+        Number of iterations
+    :return:
+        List of pairs of threads' points
+    """
     eps = points // 60  # how many points we ignore around our point
     all_threads = list()
     for k in range(max_iter):
