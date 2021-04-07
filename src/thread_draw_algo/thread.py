@@ -1,86 +1,46 @@
 import numpy as np
+from math import ceil
 
 
 class Thread:
     """
     Class for painting thread
     """
-    def __init__(self, i, j, coord_i, coord_j, pixels, weight_func):
+    def __init__(self, i, j, coord_i, coord_j, pixels):
         self.i = i
         self.j = j
-        self.pixels = pixels
         self.coord_i = coord_i
         self.coord_j = coord_j
-        self.weight = self._find_weight(coord_i, coord_j, weight_func)
-
-    def re_weight(self, pixels, weight_func):
-        """
-        Function for recounting weights
-        """
         self.pixels = pixels
-        self.weight = self._find_weight(self.coord_i, self.coord_j, weight_func)
+        self.weight = self._find_weight()
 
-    def cast_round(self, x):
-        """
-        Modified version of round
-        """
-        x = round(x)
-        if x >= len(self.pixels):
-            x -= 1
-        elif x < 0:
-            x = 0
-        return x
+    def _get_linspace(self):
+        x_i, y_i = self.coord_i
+        x_j, y_j = self.coord_j
+        steps = ceil(np.linalg.norm([x_j - x_i, y_j - y_i]))
+        xs = (np.linspace(x_i, x_j, num=steps) % len(self.pixels)).astype(int)
+        ys = (np.linspace(y_i, y_j, num=steps) % len(self.pixels)).astype(int)
+        return steps, xs, ys
 
-    def _find_weight(self, coord_i, coord_j, weight_func):
+    def _find_weight(self):
         """
-
-        :param coord_i:
-            pair of coords x and y for i point
-        :param coord_j:
-            pair of coords x and y for i point
-        :param weight_func:
-            weight_func from src.thread_draw_algo.weight_funcs
         :return:
-            weight for this thread
+            weight for this thread counting by mse
         """
-        x_i, y_i = coord_i
-        x_j, y_j = coord_j
-        steps = abs(x_j - x_i) + abs(y_i - y_j)
-        ys = list()
-        last_x = -100
-        last_y = -100
-        for i in range(steps + 1):
-            x = self.cast_round(x_i + (x_j - x_i) * (i / steps))
-            y = self.cast_round(y_i + (y_j - y_i) * (i / steps))
-            if not (x == last_x and y == last_y):
-                last_x, last_y = x, y
-                ys.append(self.pixels[x][y])
-        return weight_func(np.array(ys))
+        steps, x, y = self._get_linspace()
+        ys = np.array([self.pixels[x[i]][y[i]] for i in range(steps)])
+        return np.mean(np.square((np.array(ys))))
 
     def purge_weight(self, pixels):
         """
         Draw this thread
         Make all pixels on the thread's way - white (1)
         """
-        x_i, y_i = self.coord_i
-        x_j, y_j = self.coord_j
-        steps = abs(x_j - x_i) + abs(y_i - y_j)
-        last_x = -100
-        last_y = -100
-        for i in range(steps + 1):
-            x = self.cast_round(x_i + (x_j - x_i) * (i / steps))
-            y = self.cast_round(y_i + (y_j - y_i) * (i / steps))
-            if not (x == last_x and y == last_y):
-                last_x, last_y = x, y
-                pixels[x][y] = 1
+        steps, x, y = self._get_linspace()
+        for i in range(steps):
+            pixels[x[i]][y[i]] = 1
 
-    def to_pair(self):
-        return self.i, self.j
-
-    def __lt__(self, other):
-        """
-        For sorting algorithm
-        """
-        return self.weight < other.weight
+    def __str__(self):
+        return f"{self.i} {self.j}"
 
 
